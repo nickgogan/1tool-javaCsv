@@ -19,19 +19,19 @@ public class Json {
     public String outputFilePath;
     private UUID uuid;
     private Gson gson;
-    private DataModel model;
+    private com.ng.DataModels.DataModel model;
     private String serializedModel;
 
-    public Json(String outpath, Boolean logVerbose) {
+    public Json(String outputFilePath, Boolean logVerbose) {
         this.uuid = java.util.UUID.randomUUID();
         this.logVerbose = logVerbose;
-        this.outputFilePath = outpath;
+        this.outputFilePath = outputFilePath;
         gson = new Gson();
         System.out.println(this.logObjectSignature() + "Constructed.");
     }
 
-    public void processJson(String strJson) {
-        model = gson.fromJson(strJson, DataModel.class);
+    public void convert(String csvRow) {
+        model = gson.fromJson(csvRow, com.ng.DataModels.DataModel.class);
     }
 
     public String getSerializedModel() {

@@ -44,7 +44,7 @@ public class Csv {
     }
 
     @Nullable
-    public String[] readLine(int currentRecordNumber, HashMap<String, List<String>> errorLog) {
+    public String[] readLine(String fileName, int currentRecordNumber, HashMap<String, List<String>> errorLog) {
         String[] row;
 
         //TODO: Create blacklist of records per file.
@@ -58,7 +58,7 @@ public class Csv {
         try {
             row = this.csvReader.readNext();
             if (logVerbose) {
-                System.out.println(this.logObjectSignature() + "Reading csv record number [" + currentRecordNumber + "].");
+                System.out.println(this.logObjectSignature() + "Reading csv record number [" + currentRecordNumber + "] from file ["+fileName+"].");
             }
             return row;
         }
@@ -76,7 +76,7 @@ public class Csv {
         }
     }
 
-    public void analyzeRowEntries(@NotNull String[] row)
+    public void analyzeRow(@NotNull String[] row)
     {
         //Note: OpenCSV does NOT right-pad the rows to meet the number of headers!
         //Note: OpenCSV does maintain
@@ -86,7 +86,7 @@ public class Csv {
             int colIndex = 0;
             for(; colIndex < rowLength; colIndex++)
             {
-                if(row[colIndex] == null || row[colIndex].isEmpty())
+                if(isInvalid(row[colIndex]))
                 {
                     this.csvDescription.emptyCounts[colIndex] += 1;
                 }
@@ -98,7 +98,7 @@ public class Csv {
         }
         else {
             for(int colIndex = 0; colIndex < this.csvDescription.headersCount; colIndex++) {
-                if(row[colIndex] == null || row[colIndex].isEmpty())
+                if(isInvalid(row[colIndex]))
                 {
                     this.csvDescription.emptyCounts[colIndex] += 1;
                 }
@@ -119,15 +119,18 @@ public class Csv {
         return this.csvReader;
     }
 
-    private Boolean isInvalid(String fieldValue) {
-        Boolean result = false;
+    @NotNull
+    private Boolean isInvalid(String fieldValue)
+    {
+        if(fieldValue == null || fieldValue.isEmpty()) { return true; }
+        String trimmedFieldValue = fieldValue.trim();
         String[] filter = new String[] {"-", "--"};
         for(String test : filter) {
-            if(test.equals(fieldValue)) {
-                result = true;
+            if(test.equals(trimmedFieldValue)) {
+                return true;
             }
         }
-        return result;
+        return false;
     }
     @NotNull
     @Contract(pure = true)

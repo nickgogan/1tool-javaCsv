@@ -81,17 +81,17 @@ public class Report {
 
     public void printAnalysis()
     {
+        //Sanity check
         if(this.aggregateAnalysis == null) {
             System.out.println("[Report.printAnalysis] Null aggregate CsvDescription.");
             return;
         }
-
-        System.out.println(getReportSeparator());
-        //Sanity check
         if(this.aggregateAnalysis.headers.length != this.aggregateAnalysis.emptyCounts.length) {
             System.out.println("[printAnalysis] Mismatched number of headers & empties!");
         }
         else {
+            System.out.println(getReportSeparator());
+            System.out.println("Input CSV Analysis");
             HashMap<Integer, List<String>> map = new HashMap<>();
             for(int i = 0; i < this.aggregateAnalysis.headers.length; i++) {
                 int currentKey = this.aggregateAnalysis.emptyCounts[i];
@@ -115,11 +115,11 @@ public class Report {
         System.out.println("Run id                             : " + this.runId);
         System.out.println("Run date                           : " + this.runDate);
         System.out.println("Run duration (ms)                  : " + this.runTimeMilliseconds);
-        System.out.println("CSV data version                   : " + this.csvDataVersion);
+        System.out.println("CSV data version                   : " + "v"+this.csvDataVersion);
         System.out.println("Total CSV records                  : " + this.csvRecordCount);
         System.out.println("Total CSV size                     : " + FileUtils.byteCountToDisplaySize(this.csvDataVolume));
         System.out.println("Avg CSV record size                : " + FileUtils.byteCountToDisplaySize(getAvgRecordSizeInBytes(csvRecordCount, csvDataVolume)));
-        System.out.println("JSON model version                 : " + this.jsonModelVersion);
+        System.out.println("JSON model version                 : " + "v"+this.jsonModelVersion);
         System.out.println("Total JSON records                 : " + this.jsonDataVolume);
         System.out.println("Total JSON size                    : " + FileUtils.byteCountToDisplaySize(this.jsonDataVolume));
         //System.out.println("Avg JSON record size               : " + FileUtils.byteCountToDisplaySize(getAvgRecordSizeInBytes(jsonRecordCount, jsonDataVolume)));
