@@ -1,6 +1,8 @@
 package com.ng;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.ng.DataModels.DataModel;
 import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -17,27 +19,43 @@ import java.util.UUID;
 public class Json {
     public Boolean logVerbose;
     public String outputFilePath;
+    private ObjectMapper objectMapper;
+    private static Gson gson;
     private UUID uuid;
-    private Gson gson;
-    private com.ng.DataModels.DataModel model;
+    private DtoCsvRow dtoRecord;
+    private com.ng.DataModels.DataModel dataModel;
     private String serializedModel;
 
     public Json(String outputFilePath, Boolean logVerbose) {
         this.uuid = java.util.UUID.randomUUID();
         this.logVerbose = logVerbose;
         this.outputFilePath = outputFilePath;
+        this.objectMapper = new ObjectMapper();
         gson = new Gson();
         System.out.println(this.logObjectSignature() + "Constructed.");
     }
 
-    public void convert(String csvRow) {
-        model = gson.fromJson(csvRow, com.ng.DataModels.DataModel.class);
+    //TODO
+    public void convert() {
+//        model = gson.fromJson(csvRow, com.ng.DataModels.DataModel.class);
+        this.dataModel = new DataModel();
+        try {
+            this.dataModel = this.objectMapper.convertValue(this.dtoRecord, this.dataModel.getClass());
+//            this.objectMapper.writeValue(new File(this.outputFilePath), new DataModel());
+        }
+        catch(Exception e) {
+
+        }
+    }
+
+    public void setDtoRecord(DtoCsvRow dtoCsvRow) {
+        this.dtoRecord = dtoCsvRow;
     }
 
     public String getSerializedModel() {
         if(serializedModel == null || serializedModel.isEmpty())
         {
-            return model.toString();
+            return dataModel.toString();
         }
         else return serializedModel;
     }
@@ -45,7 +63,7 @@ public class Json {
     public void appendToFile(@NotNull int recordNumber, @NotNull HashMap<String, List<String>> errors) {
         System.out.println("[appendToFile] Writing json number [" + recordNumber + "].");
         try {
-            Files.write(Paths.get(outputFilePath), model.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+            Files.write(Paths.get(outputFilePath), dataModel.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
         }
         catch (IOException e) {
             System.out.println("[appendToFile] Error writing json number [" + recordNumber + "] to file.");

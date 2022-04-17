@@ -62,6 +62,8 @@ public class App
                         currentCsv.analyzeRow(csvRow);
                     }
                     DtoCsvRow dtoRecord = new DtoCsvRow(csvRow);
+                    outputJson.setDtoRecord(dtoRecord);
+                    outputJson.convert();
                     csvRecordNumber++;
                     runReport.csvRecordCount++;
                 }
