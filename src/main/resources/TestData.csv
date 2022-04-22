@@ -1,4 +1,4 @@
 Header1,Header 2,HEADER 3,header 4
-row1.col1,,row1.col3,row1.col4
-row2.col1,row2.col2,row2.col3,row2.col4
+row1.col1,,row1.col3,--
+row2.col1,-,row2.col3,row2.col4
 ,,row3.col3,

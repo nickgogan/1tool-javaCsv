@@ -9,6 +9,7 @@ public class CsvDescription {
     public String[] headers;
     public int[] emptyCounts;
     public int headersCount;
+    public long rowCount;
 
     private String filename;
     private UUID csvUUID;
@@ -31,6 +32,10 @@ public class CsvDescription {
             this.headersCount = this.headers.length;
         }
         else { System.out.println(this.logObjectSignature() + "Null or empty header row."); }
+    }
+
+    public void setRowCount(long count) {
+        this.rowCount = count;
     }
     public String getFilename() {return this.filename;}
     public UUID getCsvUUID() {return this.csvUUID;}

@@ -4,14 +4,9 @@ import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 public class Report {
     public UUID runId;
@@ -21,25 +16,17 @@ public class Report {
     public int csvRecordCount;
     public long csvDataVolume;
 
-    public int jsonModelVersion;
-    public int jsonRecordCount;
-    public long jsonDataVolume;
     public CsvDescription aggregateAnalysis;
     HashMap<String, List<String>> errors;
-    public Report(int jsonModelVersion, int csvDataVersion) {
+    public Report(int csvDataVersion) {
         this.runId = java.util.UUID.randomUUID();
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         this.runDate = new Date();
         this.csvDataVersion = csvDataVersion;
         this.csvRecordCount = 0;
         this.csvDataVolume = 0;
-        this.jsonModelVersion = jsonModelVersion;
-        this.jsonRecordCount = 0;
-        this.jsonDataVolume = 0;
         errors = new HashMap<String, List<String>>();
         errors.put("fromCsvFile", new ArrayList<String>());
-        errors.put("csvToJsonConversion", new ArrayList<String>());
-        errors.put("toJsonFile", new ArrayList<String>());
         errors.put("ioException", new ArrayList<String>());
     }
 
@@ -47,15 +34,6 @@ public class Report {
         this.csvDataVolume += csvFileSize;
     }
 
-    public void setJsonFileSize(String outputDataPath) {
-        try {
-            this.jsonDataVolume = Files.size(Paths.get(outputDataPath));
-        }
-        catch(IOException e) {
-            System.out.println("[report.setJsonFileSize] Error getting file size for output JSON ["+outputDataPath+"].");
-            e.printStackTrace();
-        }
-    }
 
     public void setAggregateAnalysis(CsvDescription aggregateAnalysis) {
         this.aggregateAnalysis = aggregateAnalysis;
@@ -101,8 +79,10 @@ public class Report {
                 map.get(currentKey).add(this.aggregateAnalysis.headers[i]);
             }
             SortedSet<Integer> mapKeys = new TreeSet<>(map.keySet());
+            System.out.println("\n" + "Null Fields Counts");
             for(Integer key : mapKeys) {
-                System.out.println("Empty count " +key+": "+map.get(key));
+                //Count 0 means that the column appears for all records
+                System.out.println("Column [" +key+"] missing "+map.get(key));
             }
             System.out.println("Total CSV records: " + this.csvRecordCount);
         }
@@ -119,10 +99,6 @@ public class Report {
         System.out.println("Total CSV records                  : " + this.csvRecordCount);
         System.out.println("Total CSV size                     : " + FileUtils.byteCountToDisplaySize(this.csvDataVolume));
         System.out.println("Avg CSV record size                : " + FileUtils.byteCountToDisplaySize(getAvgRecordSizeInBytes(csvRecordCount, csvDataVolume)));
-        System.out.println("JSON model version                 : " + "v"+this.jsonModelVersion);
-        System.out.println("Total JSON records                 : " + this.jsonDataVolume);
-        System.out.println("Total JSON size                    : " + FileUtils.byteCountToDisplaySize(this.jsonDataVolume));
-        //System.out.println("Avg JSON record size               : " + FileUtils.byteCountToDisplaySize(getAvgRecordSizeInBytes(jsonRecordCount, jsonDataVolume)));
         System.out.println("");
         System.out.println("Errors:");
         Set<String> errorTypes = errors.keySet();

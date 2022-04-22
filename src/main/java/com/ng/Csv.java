@@ -1,6 +1,10 @@
 package com.ng;
 
+import com.opencsv.CSVParser;
+import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.exceptions.CsvException;
 import com.opencsv.exceptions.CsvValidationException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +20,7 @@ public class Csv {
     public CSVReader csvReader;
     public CsvDescription csvDescription;
     public Boolean logVerbose;
+    public String[] valueFilters;
     private String filePath;
     private UUID uuid;
     private FileReader fileReader;
@@ -25,6 +30,15 @@ public class Csv {
         this.filePath = inputPath;
         this.logVerbose = logVerbose;
         this.csvDescription = new CsvDescription(this.filePath, this.uuid, headers, logVerbose);
+        System.out.println(this.logObjectSignature() + "Constructed.");
+    }
+
+    public Csv(String inputPath, String[] headers, String[] valueFilters, Boolean logVerbose) {
+        this.uuid = java.util.UUID.randomUUID();
+        this.filePath = inputPath;
+        this.logVerbose = logVerbose;
+        this.csvDescription = new CsvDescription(this.filePath, this.uuid, headers, logVerbose);
+        this.valueFilters = valueFilters;
         System.out.println(this.logObjectSignature() + "Constructed.");
     }
     public UUID getCsvId() {return this.uuid;}
@@ -43,17 +57,23 @@ public class Csv {
         return result;
     }
 
+    public long getCounts() {
+        long result;
+        try {
+            result = this.csvReader.readAll().size();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (CsvException e) {
+            throw new RuntimeException(e);
+        }
+        this.csvDescription.rowCount = result;
+        System.out.println("[Csv.getCount] Total count: [" + result + "].");
+        return result;
+    }
+
     @Nullable
     public String[] readLine(String fileName, int currentRecordNumber, HashMap<String, List<String>> errorLog) {
         String[] row;
-
-        //TODO: Create blacklist of records per file.
-        //250180 is from csv1
-        //357802 is from csv2
-        if(currentRecordNumber == 357802 || currentRecordNumber == 250180)
-        {
-            return null;
-        }
 
         try {
             row = this.csvReader.readNext();
@@ -79,7 +99,6 @@ public class Csv {
     public void analyzeRow(@NotNull String[] row)
     {
         //Note: OpenCSV does NOT right-pad the rows to meet the number of headers!
-        //Note: OpenCSV does maintain
         int rowLength = row.length;
         if(rowLength < this.csvDescription.headersCount) {
             int lengthDiff = this.csvDescription.headersCount - rowLength;
@@ -108,7 +127,11 @@ public class Csv {
     public CSVReader openCsvFile() {
         if (this.csvReader == null) {
             try {
-                this.csvReader = new CSVReader(new FileReader(this.filePath));
+                CSVParser parser = new CSVParserBuilder()
+                        .withSeparator(',')
+                        .withIgnoreQuotations(true)
+                        .build();
+                this.csvReader = new CSVReaderBuilder(new FileReader(this.filePath)).withCSVParser(parser).build();
             }
             catch (FileNotFoundException e) {
                 System.out.println(this.logObjectSignature() + "Input csv file not found.");
@@ -123,9 +146,9 @@ public class Csv {
     private Boolean isInvalid(String fieldValue)
     {
         if(fieldValue == null || fieldValue.isEmpty()) { return true; }
+        if(this.valueFilters == null || this.valueFilters.length == 0) { return false; }
         String trimmedFieldValue = fieldValue.trim();
-        String[] filter = new String[] {"-", "--"};
-        for(String test : filter) {
+        for(String test : this.valueFilters) {
             if(test.equals(trimmedFieldValue)) {
                 return true;
             }
